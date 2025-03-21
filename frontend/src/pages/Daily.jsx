@@ -18,7 +18,7 @@ function Daily() {
       <Header />
       <Row gutter={16} style={{ height: '100vh', width: '100vw'}}>
         {/* Columna izquierda: Tabla */}
-        <Col span={12}>
+        <Col span={14}>
           <Card title="Registro Diario">
             {/* Input para agregar una fila de la tabla */}
             <InputNewMesa />
@@ -28,7 +28,7 @@ function Daily() {
         </Col>
 
         {/* Columna derecha: Espacio reservado para otro componente */}
-        <Col span={12}>
+        <Col span={10}>
           <Card title="Gastos y vales">
             {/* Aquí puedes agregar tu otro componente */}
             <TableExpenses initialCaja={initialCaja} />
