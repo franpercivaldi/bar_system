@@ -1,4 +1,4 @@
-const { guardarMesaService, getMesasByIdBarService } = require('../services/mesaService');
+const { guardarMesaService, getMesasByIdBarService, editarMesaService, eliminarMesaService } = require('../services/mesaService');
 
 const guardarMesa = async (req, res) => {
   try {
@@ -27,5 +27,26 @@ const getMesasByIdBar = async (req, res) => {
   }
 }
 
+const editarMesa = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const mesaActualizada = await editarMesaService(id, req.body);
+    res.json(mesaActualizada);
+  } catch (error) {
+    console.error('Error al editar la mesa:', error);
+    res.status(400).json({ mensaje: error.message });
+  }
+};
 
-module.exports = { guardarMesa, getMesasByIdBar};
+
+const eliminarMesa = async (req, res) => {
+  try{
+    const {id} = req.params;
+    const mesaEliminada = await eliminarMesaService(id);
+    res.json(mesaEliminada)
+  } catch (error){
+    res.status(400).json({mensaje: error.message})
+  }
+}
+
+module.exports = { guardarMesa, getMesasByIdBar, editarMesa, eliminarMesa};

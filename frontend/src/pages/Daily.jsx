@@ -27,9 +27,23 @@ function Daily() {
     fetchMesas();
   }, []);
 
-  // Cuando se agregue una nueva mesa desde InputNewMesa, la sumamos al array
+  // Actualizar el estado localmente al agregar una nueva mesa
   const handleAddMesa = (nuevaMesa) => {
     setMesas((prev) => [...prev, nuevaMesa]);
+  };
+
+  // Actualizar el estado localmente al editar una mesa
+  const handleEditMesa = (mesaActualizada) => {
+    setMesas((prev) =>
+      prev.map((mesa) =>
+        mesa.id === mesaActualizada.id ? { ...mesa, ...mesaActualizada } : mesa
+      )
+    );
+  };
+
+  // Actualizar el estado localmente al eliminar una mesa
+  const handleDeleteMesa = (id) => {
+    setMesas((prev) => prev.filter((mesa) => mesa.id !== id));
   };
 
   return (
@@ -38,10 +52,13 @@ function Daily() {
       <Row gutter={16} style={{ height: '100vh', width: '100vw' }}>
         <Col span={14}>
           <Card title="Registro Diario">
-            {/* Componente para agregar una nueva mesa */}
             <InputNewMesa onAdd={handleAddMesa} />
-            {/* Tabla que muestra las mesas obtenidas del backend */}
-            <TableDaily data={mesas} loading={loading} />
+            <TableDaily 
+              data={mesas} 
+              loading={loading} 
+              onEdit={handleEditMesa} 
+              onDelete={handleDeleteMesa} 
+            />
           </Card>
         </Col>
         <Col span={10}>

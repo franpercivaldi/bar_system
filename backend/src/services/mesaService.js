@@ -70,5 +70,35 @@ const getMesasByIdBarService = async (id) => {
     }
 };
 
+const editarMesaService = async (id, nuevosCampos) => {
+  try {
+    const mesa = await Mesa.findByPk(id);
+    if (!mesa) {
+      throw new Error('Mesa no encontrada');
+    }
 
-module.exports = { guardarMesaService, getMesasByIdBarService };
+    await mesa.update(nuevosCampos);
+    return mesa;
+  } catch (error) {
+    console.error('Error en editarMesaService:', error);
+    throw new Error('Error al editar la mesa: ' + error.message);
+  }
+};
+
+const eliminarMesaService = async (id) => {
+  try{
+    const mesa = await Mesa.findByPk(id);
+    if (!mesa) {
+      throw new Error('Mesa no encontrada');
+    }
+
+    await mesa.destroy();
+    return { mensaje: 'Mesa eliminada correctamente' };
+  } catch (error) {
+    console.error('Error en eliminarMesaService:', error);
+    throw new Error('Error al eliminar la mesa: ' + error.message);
+  }
+}
+
+
+module.exports = { guardarMesaService, getMesasByIdBarService, editarMesaService, eliminarMesaService };
