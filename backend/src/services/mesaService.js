@@ -63,7 +63,6 @@ const getMesasByIdBarService = async (id) => {
           }
         ]
       });
-  
       return mesas;
     } catch (error) {
       console.error('Error en getMesasByIdBarService:', error);

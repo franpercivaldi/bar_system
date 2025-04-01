@@ -18,7 +18,8 @@ const guardarMesa = async (req, res) => {
 
 const getMesasByIdBar = async (req, res) => {
   try {
-    const mesas = await getMesasByIdBarService(req.body);
+    const barId = req.headers['bar-seleccionado'];
+    const mesas = await getMesasByIdBarService(barId);
     res.json(mesas);
   } catch (error) {
     console.error('Error al obtener las mesas:', error);

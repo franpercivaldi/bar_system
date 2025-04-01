@@ -1,36 +1,51 @@
+import { useEffect, useState } from 'react';
 import { Row, Col, Card } from 'antd';
-import TableDaily from '../components/TableDaily';
-import InputNewMesa from '../components/InputNewMesa';
-import TableExpenses from '../components/TableExpenses';
 import Header from '../components/Header';
+import InputNewMesa from '../components/InputNewMesa';
+import TableDaily from '../components/TableDaily';
+import TableExpenses from '../components/TableExpenses';
+import { getSales } from '../api/sales';
 
 function Daily() {
-  const initialData = [
-    { key: '1', mesa: 'Mesa 1', monto: 250.50, tipoPago: 'Efectivo', propina: 20.00 },
-    { key: '2', mesa: 'Mesa 2', monto: 320.75, tipoPago: 'Mercado Pago', propina: 15.50 },
-    { key: '3', mesa: 'Mesa 3', monto: 150.00, tipoPago: 'Transferencia', propina: 10.00 },
-  ];
+  const [mesas, setMesas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const initialCaja = 1300;
+
+  useEffect(() => {
+    const fetchMesas = async () => {
+      try {
+        const result = await getSales();
+        setMesas(result.data);
+      } catch (error) {
+        console.error("Error fetching mesas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMesas();
+  }, []);
+
+  // Cuando se agregue una nueva mesa desde InputNewMesa, la sumamos al array
+  const handleAddMesa = (nuevaMesa) => {
+    setMesas((prev) => [...prev, nuevaMesa]);
+  };
 
   return (
     <>
       <Header />
-      <Row gutter={16} style={{ height: '100vh', width: '100vw'}}>
-        {/* Columna izquierda: Tabla */}
+      <Row gutter={16} style={{ height: '100vh', width: '100vw' }}>
         <Col span={14}>
           <Card title="Registro Diario">
-            {/* Input para agregar una fila de la tabla */}
-            <InputNewMesa />
-            {/* Tabla de las mesas */}
-            <TableDaily initialData={initialData} />
+            {/* Componente para agregar una nueva mesa */}
+            <InputNewMesa onAdd={handleAddMesa} />
+            {/* Tabla que muestra las mesas obtenidas del backend */}
+            <TableDaily data={mesas} loading={loading} />
           </Card>
         </Col>
-
-        {/* Columna derecha: Espacio reservado para otro componente */}
         <Col span={10}>
           <Card title="Gastos y vales">
-            {/* Aquí puedes agregar tu otro componente */}
             <TableExpenses initialCaja={initialCaja} />
           </Card>
         </Col>
