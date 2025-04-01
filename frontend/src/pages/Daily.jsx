@@ -9,8 +9,7 @@ import { getSales } from '../api/sales';
 function Daily() {
   const [mesas, setMesas] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const initialCaja = 1300;
+  
 
   useEffect(() => {
     const fetchMesas = async () => {
@@ -63,7 +62,7 @@ function Daily() {
         </Col>
         <Col span={10}>
           <Card title="Gastos y vales">
-            <TableExpenses initialCaja={initialCaja} />
+            <TableExpenses />
           </Card>
         </Col>
       </Row>

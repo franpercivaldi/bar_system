@@ -5,6 +5,8 @@ const cors = require("cors");
 const mesasRoutes = require('./routes/mesaRoutes');
 const barRoutes = require('./routes/barRoutes');
 const authRoutes = require('./routes/authRoutes');
+const comentarioRoutes = require('./routes/comentarioRoutes')
+const cajaRoutes = require('./routes/cajaRoutes')
 
 const app = express();
 
@@ -22,7 +24,8 @@ app.use(express.json());
 app.use('/api', barRoutes);
 app.use('/api', mesasRoutes);
 app.use('/api', authRoutes);
-
+app.use('/api', comentarioRoutes)
+app.use('/api', cajaRoutes)
 
 sequelize.sync({ alter: true }).then(() => {
   console.log('📌 Base de datos sincronizada');
