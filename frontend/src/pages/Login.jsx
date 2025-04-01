@@ -1,16 +1,29 @@
-import { Row, Col, Card, Form, Input, Button, Typography } from 'antd';
+import { Alert, Row, Col, Card, Form, Input, Button, Typography } from 'antd';
 import { Formik } from 'formik';
+import { useNavigate } from "react-router-dom";
+import {loginBar} from '../api/auth';
 import * as Yup from 'yup';
+import {useState} from 'react';
 
 
 const { Title } = Typography;
 const barImage = '../assets/barMarias.jpeg';
 
 function Login() {
+
+  // Hook para redireccionar a otras páginas
+  const navigate = useNavigate();
+
+  // Estado local para mostrar mensajes de error
+  const [error, setError] = useState(null);
+
   // Esquema de validación con Yup
   const validationSchema = Yup.object().shape({
-    email: Yup.string().email("Email inválido").required("Campo requerido"),
-    password: Yup.string().min(6, "Mínimo 6 caracteres").required("Campo requerido"),
+    nombre: Yup.string()
+      .required("Este campo es obligatorio"),
+    password: Yup.string()
+      .min(3, "La contraseña debe tener al menos 8 caracteres")
+      .required("Este campo es obligatorio"),
   });
 
   return (
@@ -57,74 +70,89 @@ function Login() {
           <Title level={2} style={{ textAlign: "center", color: "#e0e0e0" }}>
             Iniciar Sesión
           </Title>
-          
+
+          {/* Mostrar mensaje de error */}
+          {error && <Alert message={error} type="error" showIcon style={{ marginBottom: "10px" }} />}
+
+          {/* Formulario de inicio de sesión */}
+                    
           <Formik
-            initialValues={{ email: "", password: "" }}
+            initialValues={{ nombre: "", password: "" }}
             validationSchema={validationSchema}
             onSubmit={(values) => {
-              console.log("Datos enviados:", values);
+              setError(null); 
+              loginBar(values.nombre, values.password)
+                .then((response) => {
+                  localStorage.setItem("token", response.token);
+                  localStorage.setItem("barSeleccionado", response.bar.id);
+                  navigate("/daily-records");
+                })
+                .catch((error) => {
+                  console.error("Error en la petición:", error);
+                  const msg = error.response?.data?.msg || "Ocurrió un error inesperado";
+                  setError(msg);
+                });
             }}
           >
             {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
-              <Form layout="vertical" onFinish={handleSubmit}>
+              <form onSubmit={handleSubmit}>
                 {/* Campo de Email */}
-                <Form.Item 
-                  label={<span style={{ color: "#e0e0e0" }}>Correo Electrónico</span>} 
-                  validateStatus={errors.email && touched.email ? "error" : ""} 
-                  help={errors.email && touched.email ? errors.email : ""}
+                <Form.Item
+                  label={<span style={{ color: "#e0e0e0" }}>Nombre Bar</span>}
+                  validateStatus={errors.nombre ? "error" : ""}
+                  help={errors.nombre && touched.nombre ? errors.nombre : ""}
                 >
-                  <Input 
-                    name="email" 
-                    type="email" 
-                    value={values.email} 
-                    onChange={handleChange} 
-                    onBlur={handleBlur} 
-                    placeholder="Ingresa tu email"
-                    style={{ 
-                      backgroundColor: "#1e1e1e", 
-                      color: "#e0e0e0", 
-                      borderColor: "#3a3a3a" 
-                    }} 
+                  <Input
+                    name="nombre"
+                    type="nombre"
+                    value={values.nombre}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    placeholder="Ingresa nombre del bar"
+                    style={{
+                      backgroundColor: "#1e1e1e",
+                      color: "#e0e0e0",
+                      borderColor: "#3a3a3a",
+                    }}
                   />
                 </Form.Item>
 
                 {/* Campo de Contraseña */}
-                <Form.Item 
-                  label={<span style={{ color: "#e0e0e0" }}>Contraseña</span>} 
-                  validateStatus={errors.password && touched.password ? "error" : ""} 
+                <Form.Item
+                  label={<span style={{ color: "#e0e0e0" }}>Contraseña</span>}
+                  validateStatus={errors.password && touched.password ? "error" : ""}
                   help={errors.password && touched.password ? errors.password : ""}
                 >
-                  <Input.Password 
-                    name="password" 
-                    value={values.password} 
-                    onChange={handleChange} 
-                    onBlur={handleBlur} 
+                  <Input.Password
+                    name="password"
+                    value={values.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
                     placeholder="Ingresa tu contraseña"
-                    style={{ 
-                      backgroundColor: "#1e1e1e", 
-                      color: "#e0e0e0", 
-                      borderColor: "#3a3a3a" 
-                    }} 
+                    style={{
+                      backgroundColor: "#1e1e1e",
+                      color: "#e0e0e0",
+                      borderColor: "#3a3a3a",
+                    }}
                   />
                 </Form.Item>
 
-                {/* Botón de Iniciar Sesión */}
                 <Form.Item>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit" 
-                    block 
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    block
                     style={{
-                      backgroundColor: "#10a37f", 
+                      backgroundColor: "#10a37f",
                       borderColor: "#10a37f",
                       color: "#ffffff",
-                      fontWeight: "bold"
+                      fontWeight: "bold",
                     }}
                   >
                     Ingresar
                   </Button>
                 </Form.Item>
-              </Form>
+              </form>
             )}
           </Formik>
         </Card>

@@ -1,8 +1,14 @@
-const { guardarMesaService, getMesasService } = require('../services/mesaService');
+const { guardarMesaService, getMesasByIdBarService } = require('../services/mesaService');
 
 const guardarMesa = async (req, res) => {
   try {
-    const nuevaMesa = await guardarMesaService(req.body);
+    const barId = req.headers['bar-seleccionado'];
+
+    if(!barId) {
+      return res.status(400).json({ mensaje: 'Bar no seleccionado' });
+    }
+
+    const nuevaMesa = await guardarMesaService({...req.body, bar_id: barId});
     res.status(201).json(nuevaMesa);
   } catch (error) {
     console.error('Error al guardar la mesa:', error);
@@ -10,9 +16,9 @@ const guardarMesa = async (req, res) => {
   }
 };
 
-const getMesas = async (req, res) => {
+const getMesasByIdBar = async (req, res) => {
   try {
-    const mesas = await getMesasService();
+    const mesas = await getMesasByIdBarService(req.body);
     res.json(mesas);
   } catch (error) {
     console.error('Error al obtener las mesas:', error);
@@ -21,4 +27,4 @@ const getMesas = async (req, res) => {
 }
 
 
-module.exports = { guardarMesa, getMesas};
+module.exports = { guardarMesa, getMesasByIdBar};

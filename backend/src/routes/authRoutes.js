@@ -10,15 +10,15 @@ const router = express.Router();
 // **Registro de un bar**
 router.post("/register", async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
+    const { nombre, password } = req.body;
 
-    const existingBar = await Bar.findOne({ where: { email } });
-    if (existingBar) return res.status(400).json({ msg: "El email ya está en uso" });
+    const existingBar = await Bar.findOne({ where: {nombre} });
+    if (existingBar) return res.status(400).json({ msg: "El nombre ya está en uso" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newBar = await Bar.create({ nombre, email, password: hashedPassword });
+    const newBar = await Bar.create({ nombre, password: hashedPassword });
 
-    res.status(201).json({ msg: "Registro exitoso", bar: { id: newBar.id, nombre: newBar.nombre, email: newBar.email } });
+    res.status(201).json({ msg: "Registro exitoso", bar: { id: newBar.id, nombre: newBar.nombre} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -27,17 +27,17 @@ router.post("/register", async (req, res) => {
 // **Login de bares**
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { nombre, password } = req.body;
 
-    const bar = await Bar.findOne({ where: { email } });
+    const bar = await Bar.findOne({ where: { nombre } });
     if (!bar) return res.status(400).json({ msg: "Usuario no encontrado" });
 
     const isMatch = await bcrypt.compare(password, bar.password);
     if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
 
-    const token = jwt.sign({ id: bar.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: bar.id }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
-    res.json({ token, bar: { id: bar.id, nombre: bar.nombre, email: bar.email } });
+    res.json({ token, bar: { id: bar.id, nombre: bar.nombre} });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -68,5 +68,8 @@ router.get("/perfil", auth, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+
 
 module.exports = router;

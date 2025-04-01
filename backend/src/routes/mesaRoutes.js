@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { guardarMesa, getMesas } = require('../controllers/mesaController');
+const { guardarMesa, getMesasByIdBar } = require('../controllers/mesaController');
 
 router.post('/mesas', guardarMesa);
-router.get('/mesas', getMesas)
+router.get('/mesas', getMesasByIdBar)
 
 module.exports = router;

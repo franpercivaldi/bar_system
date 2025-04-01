@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Input, InputNumber, Select, Button, Form, Card } from 'antd';
+import {addSale} from '../api/sales';
+
 
 const { Option } = Select;
 
@@ -17,8 +19,15 @@ const InputNewMesa = ({ onAdd }) => {
   };
 
   const handleSubmit = () => {
-    // TODO: hacer endpoint para agregar la mesa
-    console.log('newMesa', newMesa);
+    addSale(newMesa.mesa, newMesa.monto, newMesa.tipoPago, newMesa.propina);
+    onAdd(newMesa);
+    form.resetFields();
+    setNewMesa({
+      mesa: '',
+      monto: 0,
+      tipoPago: 'Efectivo',
+      propina: 0,
+    });
   };
 
   return (

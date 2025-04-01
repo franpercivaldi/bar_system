@@ -5,95 +5,71 @@ const { Op } = require('sequelize');
 
 
 const guardarMesaService = async (mesaData) => {
-    try {
-      const { bar_id, numero_mesa, monto, propina, tipo_pago, fecha } = mesaData;
-  
-      // Verificar si el bar existe
-      const barExistente = await Bar.findByPk(bar_id);
-      if (!barExistente) {
-        throw new Error(`El bar con id ${bar_id} no existe.`);
-      }
-  
-      // Determinar el turno basado en la hora actual
-      const ahora = new Date();
-      const horaActual = ahora.getHours() * 60 + ahora.getMinutes();
-      console.log(`Hora actual en minutos: ${horaActual}`);
-  
-      // Obtener todos los turnos
-      const turnos = await Turno.findAll();
-      console.log('Turnos obtenidos:', turnos.map(t => t.toJSON()));
-  
-      // Encontrar el turno correcto considerando cruces de medianoche
-      let turnoExistente = null;
-  
-      for (const turno of turnos) {
-        const [inicioHoras, inicioMinutos] = turno.hora_inicio.split(':').map(Number);
-        const [finHoras, finMinutos] = turno.hora_fin.split(':').map(Number);
-  
-        const inicioMinutosTotales = inicioHoras * 60 + inicioMinutos;
-        const finMinutosTotales = finHoras * 60 + finMinutos;
-  
-        console.log(`Evaluando turno: ${turno.nombre}`);
-        console.log(`Inicio en minutos: ${inicioMinutosTotales}, Fin en minutos: ${finMinutosTotales}`);
-  
-        if (inicioMinutosTotales < finMinutosTotales) {
-          // Turno sin cruce de medianoche
-          if (horaActual >= inicioMinutosTotales && horaActual < finMinutosTotales) {
-            turnoExistente = turno;
-            console.log(`Turno asignado: ${turno.nombre}`);
-            break;
-          }
-        } else {
-          // Turno que cruza la medianoche
-          if (horaActual >= inicioMinutosTotales || horaActual < finMinutosTotales) {
-            turnoExistente = turno;
-            console.log(`Turno asignado (cruce medianoche): ${turno.nombre}`);
-            break;
-          }
-        }
-      }
-  
-      if (!turnoExistente) {
-        console.error('No se encontró un turno válido para la hora actual.');
-        throw new Error('No se encontró un turno válido para la hora actual.');
-      }
-  
-      // Crear la mesa con el turno asignado
-      const nuevaMesa = await Mesa.create({
-        bar_id,
-        turno_id: turnoExistente.id,
-        numero_mesa,
-        monto,
-        propina,
-        tipo_pago,
-        fecha
-      });
-  
-      console.log('Mesa creada exitosamente:', nuevaMesa.toJSON());
-  
-      return nuevaMesa;
-    } catch (error) {
-      console.error('Error en guardarMesaService:', error);
-      throw new Error('Error al guardar la mesa: ' + error.message);
+  try {
+    const { bar_id, numero_mesa, monto, propina, tipo_pago } = mesaData;
+
+    // 1. Generar la fecha actual (YYYY-MM-DD)
+    const fechaActual = new Date();
+    const fechaFormateada = fechaActual.toISOString().split('T')[0];
+
+    // 2. Definir el turno (ejemplo: 1 = mañana, 2 = tarde)
+    const horaActual = fechaActual.getHours();
+    let turnoId = null;
+
+    // Hasta las 14:00 es turno 1 (mañana)
+    // A partir de las 14:00 es turno 2 (tarde)
+    if (horaActual < 16) {
+      turnoId = 1;
+    } else {
+      turnoId = 2;
     }
+
+    // 3. Verificar si el bar existe
+    const barExistente = await Bar.findByPk(bar_id);
+    if (!barExistente) {
+      throw new Error(`El bar con id ${bar_id} no existe.`);
+    }
+
+    // 4. Crear la mesa
+    const nuevaMesa = await Mesa.create({
+      bar_id,
+      turno_id: turnoId,
+      numero_mesa,
+      monto,
+      propina,
+      tipo_pago,
+      fecha: fechaFormateada
+    });
+
+    return nuevaMesa;
+  } catch (error) {
+    throw new Error('Error al guardar la mesa: ' + error.message);
+  }
 };
+
   
-const getMesasService = async () => {
+const getMesasByIdBarService = async (id) => {
+    // Retorna todas las mesas de un bar en particular
+    console.log('id:', id);
     try {
       const mesas = await Mesa.findAll({
+        where: {
+          bar_id: id
+        },
         include: [
-          { model: Bar, as: 'bar' },
-          { model: Turno, as: 'turno' }
-        ],
-        order: [['fecha', 'DESC']]
+          {
+            model: Turno,
+            attributes: ['nombre', 'hora_inicio', 'hora_fin']
+          }
+        ]
       });
   
       return mesas;
     } catch (error) {
-      console.error('Error en getMesasService:', error);
+      console.error('Error en getMesasByIdBarService:', error);
       throw new Error('Error al obtener las mesas: ' + error.message);
     }
 };
 
 
-module.exports = { guardarMesaService, getMesasService };
+module.exports = { guardarMesaService, getMesasByIdBarService };
