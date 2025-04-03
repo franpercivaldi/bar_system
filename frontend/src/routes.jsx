@@ -3,6 +3,8 @@ import Home from './pages/Home';
 import Daily from './pages/Daily';
 import SalesSummary from './pages/SalesSummary';
 import Login from './pages/Login';
+import DaySummary from './pages/DaySummary'
+
 import ProtectedRoute from './components/ProtectedRoute'; 
 
 const AppRoutes = () => {
@@ -30,6 +32,13 @@ const AppRoutes = () => {
             <SalesSummary />
           </ProtectedRoute>
         } />
+
+        <Route path="/salesDay-summary" element={
+          <ProtectedRoute>
+            <DaySummary />
+          </ProtectedRoute>
+        } />
+
       </Routes>
     </Router>
   );

@@ -19,7 +19,7 @@ const TableExpenses = () => {
   const [data, setData] = useState([]);
   const [newExpense, setNewExpense] = useState({ descripcion: '', monto: 0 });
 
-  // Obtener los comentarios del día
+  //Obtener los comentarios del día
   useEffect(() => {
     const fetchComentarios = async () => {
       try {

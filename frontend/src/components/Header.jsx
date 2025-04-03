@@ -17,7 +17,7 @@ const AppHeader = () => {
           <Link to="/daily-records">Mesas</Link>
         </Menu.Item>
         <Menu.Item key="2">
-          <Link to="/sales-summary">Resumen Diario</Link>
+          <Link to="/salesDay-summary">Resumen Diario</Link>
         </Menu.Item>
         <Menu.Item key="3">
           <Link to="/">Resumen Mensual</Link>
