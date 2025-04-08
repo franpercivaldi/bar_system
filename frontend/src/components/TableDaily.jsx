@@ -88,16 +88,35 @@ const TableDaily = ({ data, loading, onDelete, onEdit }) => {
           >
             <Option value="Efectivo">Efectivo</Option>
             <Option value="Mercado Pago">Mercado Pago</Option>
-            <Option value="Transferencia">Transferencia</Option>
+            <Option value="Tarjeta">Tarjeta</Option>
           </Select>
-        ) : tipo === 'Efectivo' ? (
-          <Tag color="green">{tipo}</Tag>
-        ) : tipo === 'Mercado Pago' ? (
-          <Tag color="blue">{tipo}</Tag>
         ) : (
-          <Tag color="orange">{tipo}</Tag>
+          <Tag
+            color={
+              tipo === 'Efectivo'
+                ? 'green'
+                : tipo === 'Mercado Pago'
+                ? 'blue'
+                : 'orange'
+            }
+            style={{
+              height: '30px',
+              width: '100px',
+              fontSize: '12px',
+              padding: '2px 10px',
+              borderRadius: '12px',
+              fontWeight: '500',
+              textAlign: 'center',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            {tipo}
+          </Tag>
         ),
     },
+    
     {
       title: 'Propina',
       dataIndex: 'propina',

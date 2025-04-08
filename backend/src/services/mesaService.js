@@ -16,8 +16,8 @@ const guardarMesaService = async (mesaData) => {
     const horaActual = fechaActual.getHours();
     let turnoId = null;
 
-    // Hasta las 14:00 es turno 1 (mañana)
-    // A partir de las 14:00 es turno 2 (tarde)
+    // Hasta las 16:00 es turno 1 (mañana)
+    // A partir de las 16:00 es turno 2 (tarde)
     if (horaActual < 16) {
       turnoId = 1;
     } else {
@@ -47,27 +47,28 @@ const guardarMesaService = async (mesaData) => {
   }
 };
 
-  
 const getMesasByIdBarService = async (id) => {
-    // Retorna todas las mesas de un bar en particular
-    console.log('id:', id);
-    try {
-      const mesas = await Mesa.findAll({
-        where: {
-          bar_id: id
-        },
-        include: [
-          {
-            model: Turno,
-            attributes: ['nombre', 'hora_inicio', 'hora_fin']
-          }
-        ]
-      });
-      return mesas;
-    } catch (error) {
-      console.error('Error en getMesasByIdBarService:', error);
-      throw new Error('Error al obtener las mesas: ' + error.message);
-    }
+  try {
+    const hoy = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+    const mesas = await Mesa.findAll({
+      where: {
+        bar_id: id,
+        fecha: hoy
+      },
+      include: [
+        {
+          model: Turno,
+          attributes: ['nombre', 'hora_inicio', 'hora_fin']
+        }
+      ]
+    });
+
+    return mesas;
+  } catch (error) {
+    console.error('Error en getMesasByIdBarService:', error);
+    throw new Error('Error al obtener las mesas: ' + error.message);
+  }
 };
 
 const editarMesaService = async (id, nuevosCampos) => {

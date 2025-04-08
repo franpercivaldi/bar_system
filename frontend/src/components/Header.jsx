@@ -20,7 +20,7 @@ const AppHeader = () => {
           <Link to="/salesDay-summary">Resumen Diario</Link>
         </Menu.Item>
         <Menu.Item key="3">
-          <Link to="/">Resumen Mensual</Link>
+          <Link to="/month-summary">Resumen Mensual</Link>
         </Menu.Item>
       </Menu>
     </Header>

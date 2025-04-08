@@ -39,7 +39,7 @@ const InputNewMesa = ({ onAdd }) => {
           <Select style={{ width: 120 }}>
             <Option value="Efectivo">Efectivo</Option>
             <Option value="Mercado Pago">Mercado Pago</Option>
-            <Option value="Transferencia">Transferencia</Option>
+            <Option value="Tarjeta">Tarjeta</Option>
           </Select>
         </Form.Item>
 

@@ -7,7 +7,7 @@ const initTurnos = async () => {
 
     const turnos = [
       { nombre: 'Mañana', hora_inicio: '06:00:00', hora_fin: '17:00:00' },
-      { nombre: 'Tarde/Noche', hora_inicio: '17:00:00', hora_fin: '06:00:00' }
+      { nombre: 'Noche', hora_inicio: '17:00:00', hora_fin: '06:00:00' }
     ];
 
     for (const turno of turnos) {
