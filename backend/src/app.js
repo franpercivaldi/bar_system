@@ -8,6 +8,8 @@ const authRoutes = require('./routes/authRoutes');
 const comentarioRoutes = require('./routes/comentarioRoutes')
 const cajaRoutes = require('./routes/cajaRoutes')
 const resumenRoutes = require('./routes/resumenRoutes')
+const empleadoRoutes = require('./routes/empleadoRoutes')
+const valeRoutes = require('./routes/valeRoutes')
 
 const app = express();
 
@@ -28,7 +30,8 @@ app.use('/api', authRoutes);
 app.use('/api', comentarioRoutes)
 app.use('/api', cajaRoutes)
 app.use('/api', resumenRoutes)
-
+app.use('/api', empleadoRoutes)
+app.use('/api', valeRoutes)
 
 sequelize.sync({ alter: true }).then(() => {
   console.log('📌 Base de datos sincronizada');

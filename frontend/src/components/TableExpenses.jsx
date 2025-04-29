@@ -1,3 +1,4 @@
+// src/components/TableExpenses.js
 import { useEffect, useState } from 'react';
 import {
   Table,
@@ -8,7 +9,7 @@ import {
   message,
   Spin,
 } from 'antd';
-import { addComment, getComments } from '../api/comments'; // ✅ Agregado acá
+import { addComment, getComments } from '../api/comments';
 import { getCajaInicial, saveCajaInicial } from '../api/caja';
 
 const TableExpenses = () => {
@@ -19,22 +20,24 @@ const TableExpenses = () => {
   const [data, setData] = useState([]);
   const [newExpense, setNewExpense] = useState({ descripcion: '', monto: 0 });
 
-  //Obtener los comentarios del día
+  // Obtener los comentarios del día (ordenados por id descendente)
   useEffect(() => {
     const fetchComentarios = async () => {
       try {
         const comentarios = await getComments();
-        const formateados = comentarios.map((c) => ({
-          key: c.id,
-          descripcion: c.comentario,
-          monto: parseFloat(c.monto),
-        }));
+        const formateados = comentarios
+          .map((c) => ({
+            key: Number(c.id),
+            descripcion: c.comentario,
+            monto: parseFloat(c.monto),
+          }))
+          // Mostramos el registro más reciente primero
+          .sort((a, b) => b.key - a.key);
         setData(formateados);
       } catch (error) {
         console.error('Error al obtener comentarios:', error);
       }
     };
-
     fetchComentarios();
   }, []);
 
@@ -52,7 +55,6 @@ const TableExpenses = () => {
         setLoadingCaja(false);
       }
     };
-
     fetchCaja();
   }, []);
 
@@ -66,7 +68,6 @@ const TableExpenses = () => {
         message.warning('Ingresá un monto válido');
         return;
       }
-
       const caja = await saveCajaInicial(inputCaja);
       setCajaInicial(parseFloat(caja.monto));
       message.success('Caja inicial guardada');
@@ -81,27 +82,27 @@ const TableExpenses = () => {
       message.warning('Debés ingresar la caja inicial primero');
       return;
     }
-
+    if (!newExpense.descripcion || newExpense.monto <= 0) {
+      message.warning('Completá la descripción y un monto válido');
+      return;
+    }
     try {
-      if (!newExpense.descripcion || newExpense.monto <= 0) {
-        message.warning('Completá la descripción y un monto válido');
-        return;
-      }
-
       const nuevo = await addComment({
         comentario: newExpense.descripcion,
         monto: newExpense.monto,
       });
-
-      setData((prev) => [
-        ...prev,
-        {
-          key: nuevo.id,
-          descripcion: nuevo.comentario,
-          monto: parseFloat(nuevo.monto),
-        },
-      ]);
-
+      setData((prev) => {
+        // Añadimos el nuevo registro y reordenamos para que aparezca primero
+        const actualizado = [
+          ...prev,
+          {
+            key: Number(nuevo.id),
+            descripcion: nuevo.comentario,
+            monto: parseFloat(nuevo.monto),
+          },
+        ];
+        return actualizado.sort((a, b) => b.key - a.key);
+      });
       setNewExpense({ descripcion: '', monto: 0 });
       message.success('Gasto agregado');
     } catch (error) {
@@ -111,14 +112,9 @@ const TableExpenses = () => {
   };
 
   const totalGastos = data.reduce((sum, item) => sum + item.monto, 0);
-  const saldoFinal = (cajaInicial || 0) - totalGastos;
 
   const columns = [
-    {
-      title: 'Descripción',
-      dataIndex: 'descripcion',
-      key: 'descripcion',
-    },
+    { title: 'Descripción', dataIndex: 'descripcion', key: 'descripcion' },
     {
       title: '$',
       dataIndex: 'monto',
@@ -169,9 +165,12 @@ const TableExpenses = () => {
               Agregar
             </Button>
           </div>
-
-          <Table columns={columns} dataSource={data} pagination={false} />
-
+          <Table
+            columns={columns}
+            dataSource={data}
+            pagination={false}
+            scroll={{ y: 300 }}
+          />
           <div
             style={{
               marginTop: 16,
@@ -180,8 +179,8 @@ const TableExpenses = () => {
               fontWeight: 'bold',
             }}
           >
-            TOTAL GASTOS: ${totalGastos.toFixed(2)} <br />
-            SALDO FINAL: ${saldoFinal.toFixed(2)}
+            TOTAL GASTOS: ${totalGastos.toFixed(2)}
+            <br />
           </div>
         </>
       )}

@@ -5,9 +5,16 @@ import { editSale, deleteSale } from '../api/sales';
 
 const { Option } = Select;
 
+/**
+ * Muestra las ventas del día. Se invierte el orden de las filas para que
+ * los registros más recientes aparezcan primero (orden descendente por `id`).
+ */
 const TableDaily = ({ data, loading, onDelete, onEdit }) => {
   const [editingId, setEditingId] = useState(null);
   const [editedData, setEditedData] = useState({});
+
+  /** Orden descendente */
+  const sortedData = Array.isArray(data) ? [...data].sort((a, b) => b.id - a.id) : [];
 
   const handleEditClick = (record) => {
     setEditingId(record.id);
@@ -17,26 +24,26 @@ const TableDaily = ({ data, loading, onDelete, onEdit }) => {
   const handleSaveClick = async () => {
     try {
       const updated = await editSale(editingId, editedData);
-      message.success("Mesa actualizada correctamente");
-      onEdit?.(updated);  // Notifica al padre para actualizar el estado localmente
+      message.success('Mesa actualizada correctamente');
+      onEdit?.(updated); // Notifica al padre para actualizar el estado localmente
       setEditingId(null);
     } catch (error) {
       console.error('Error al editar la mesa:', error);
-      message.error("Error al editar la mesa");
+      message.error('Error al editar la mesa');
     }
   };
-  
+
   const handleDelete = async (id) => {
     try {
       await deleteSale(id);
-      message.success("Mesa eliminada correctamente");
-      onDelete?.(id);  // Notifica al padre para actualizar el estado localmente
+      message.success('Mesa eliminada correctamente');
+      onDelete?.(id); // Notifica al padre para actualizar el estado localmente
     } catch (error) {
       console.error('Error al borrar la mesa:', error);
-      message.error("Error al borrar la mesa");
+      message.error('Error al borrar la mesa');
     }
   };
-  
+
   const handleFieldChange = (field, value) => {
     setEditedData((prev) => ({
       ...prev,
@@ -116,7 +123,6 @@ const TableDaily = ({ data, loading, onDelete, onEdit }) => {
           </Tag>
         ),
     },
-    
     {
       title: 'Propina',
       dataIndex: 'propina',
@@ -138,11 +144,7 @@ const TableDaily = ({ data, loading, onDelete, onEdit }) => {
       key: 'acciones',
       render: (_, record) =>
         editingId === record.id ? (
-          <Button
-            type="primary"
-            icon={<SaveOutlined />}
-            onClick={handleSaveClick}
-          >
+          <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveClick}>
             Guardar
           </Button>
         ) : (
@@ -170,11 +172,10 @@ const TableDaily = ({ data, loading, onDelete, onEdit }) => {
   return (
     <Table
       columns={columns}
-      dataSource={data}
+      dataSource={sortedData}
       loading={loading}
       rowKey="id"
       pagination={false}
-      // scroll automatico
       scroll={{ y: 300 }}
     />
   );

@@ -4,6 +4,9 @@ const Turno = require('./turno');
 const Usuario = require('./usuario');
 const Mesa = require('./mesa');
 const Comentario = require('./comentario');
+const Empleado = require('./empleado');
+const Vale = require('./vale');
+
 
 // Relación: Un Bar tiene muchas Mesas
 Bar.hasMany(Mesa, { foreignKey: 'bar_id' });
@@ -21,4 +24,7 @@ Mesa.belongsTo(Turno, { foreignKey: 'turno_id' });
 Bar.hasMany(Comentario, { foreignKey: 'bar_id' });
 Comentario.belongsTo(Bar, { foreignKey: 'bar_id' });
 
-module.exports = { sequelize, Bar, Turno, Usuario, Mesa, Comentario };
+Empleado.hasMany(Vale,     { foreignKey:'empleado_id', onDelete:'CASCADE', onUpdate:'CASCADE' });
+Vale.belongsTo(Empleado,   { foreignKey:'empleado_id' });
+
+module.exports = { sequelize, Bar, Turno, Usuario, Mesa, Comentario, Empleado, Vale };
