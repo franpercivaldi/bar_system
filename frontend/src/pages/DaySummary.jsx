@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Card, Col, Row, Typography, Divider, Space, Spin, message } from 'antd';
+import {
+  Card,
+  Col,
+  Row,
+  Typography,
+  Divider,
+  Space,
+  Spin,
+  message,
+  Tag,
+} from 'antd';
 import Header from '../components/Header';
 import { getResumenDiario } from '../api/resumes';
 
@@ -45,26 +55,46 @@ const ResumenTurno = () => {
   const calcEfectivoNeto = (turno) =>
     (turnos[turno]?.efectivo || 0) - (turnos[turno]?.gastos || 0);
 
-  const ventaTotalDia = (turnos.mañana?.total || 0) + (turnos.noche?.total || 0);
-  const ventaTotalTarjetas = calcVentaTarjetas('mañana') + calcVentaTarjetas('noche');
+  const ventaTotalDia =
+    (turnos.mañana?.total || 0) + (turnos.noche?.total || 0);
+  const ventaTotalTarjetas =
+    calcVentaTarjetas('mañana') + calcVentaTarjetas('noche');
 
   return (
-    <>
+    <div style={{ minHeight: '100vh', backgroundColor: '#2c2c2c' }}>
       <Header />
       <Card
-        title={<Title level={3}>Resumen del día - {fecha}</Title>}
-        style={{ margin: 32, backgroundColor: '#fdfdfd', borderRadius: 12 }}
+        title={<Title level={3} style={{ color: '#e0e0e0' }}>Resumen del día - {fecha}</Title>}
+        style={{
+          backgroundColor: '#2c2c2c',
+          color: '#e0e0e0',
+          borderRadius: 10,
+          margin: 24,
+        }}
+        bodyStyle={{ paddingBottom: 0 }}
       >
-        <Row gutter={32}>
-          {/* TURNO MAÑANA */}
-          <Col span={12}>
-            <Card title="Turno Mañana" style={{ borderRadius: 10 }}>
+        {/* Cards de los turnos */}
+        <Row gutter={[16, 16]} justify="center">
+          <Col xs={24} md={12}>
+            <Card
+              title="Turno Mañana"
+              style={{
+                backgroundColor: '#1e1e1e',
+                color: '#e0e0e0',
+                borderRadius: 10,
+              }}
+            >
               <Space direction="vertical" size={6}>
                 <Text><strong>Venta Total:</strong> {format(turnos.mañana?.total)}</Text>
                 <Text><strong>Tarjetas:</strong> {format(turnos.mañana?.tarjetas)}</Text>
-                <Text><strong>MP :</strong> {format(turnos.mañana?.mp)}</Text>
+                <Text><strong>MP:</strong> {format(turnos.mañana?.mp)}</Text>
                 <Text><strong>Venta Efectivo:</strong> {format(turnos.mañana?.efectivo)}</Text>
-                <Text><strong>Gastos:</strong> {format(turnos.mañana?.gastos)}</Text>
+                <Text>
+                  <strong>Gastos:</strong>{' '}
+                  <Tag color="red" style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                    {format(turnos.mañana?.gastos)}
+                  </Tag>
+                </Text>
                 <Text strong style={{ color: '#1890ff' }}>
                   Total Efectivo Neto: {format(calcEfectivoNeto('mañana'))}
                 </Text>
@@ -72,15 +102,26 @@ const ResumenTurno = () => {
             </Card>
           </Col>
 
-          {/* TURNO NOCHE */}
-          <Col span={12}>
-            <Card title="Turno Noche" style={{ borderRadius: 10 }}>
+          <Col xs={24} md={12}>
+            <Card
+              title="Turno Noche"
+              style={{
+                backgroundColor: '#1e1e1e',
+                color: '#e0e0e0',
+                borderRadius: 10,
+              }}
+            >
               <Space direction="vertical" size={6}>
                 <Text><strong>Venta Total:</strong> {format(turnos.noche?.total)}</Text>
                 <Text><strong>Tarjetas:</strong> {format(turnos.noche?.tarjetas)}</Text>
                 <Text><strong>MP:</strong> {format(turnos.noche?.mp)}</Text>
                 <Text><strong>Venta Efectivo:</strong> {format(turnos.noche?.efectivo)}</Text>
-                <Text><strong>Gastos:</strong> {format(turnos.noche?.gastos)}</Text>
+                <Text>
+                  <strong>Gastos:</strong>{' '}
+                  <Tag color="red" style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                    {format(turnos.noche?.gastos)}
+                  </Tag>
+                </Text>
                 <Text strong style={{ color: '#1890ff' }}>
                   Total Efectivo Neto: {format(calcEfectivoNeto('noche'))}
                 </Text>
@@ -89,14 +130,18 @@ const ResumenTurno = () => {
           </Col>
         </Row>
 
-        <Divider />
+        <Divider style={{ borderColor: '#444' }} />
 
-        {/* TOTALES DEL DÍA */}
+        {/* Totales del día */}
         <Row justify="center">
-          <Col span={16}>
+          <Col xs={24} md={16}>
             <Card
               title="Totales del Día"
-              style={{ backgroundColor: '#fafafa', borderRadius: 10 }}
+              style={{
+                backgroundColor: '#1e1e1e',
+                color: '#e0e0e0',
+                borderRadius: 10,
+              }}
             >
               <Space direction="vertical" size={6}>
                 <Text strong style={{ fontSize: 16 }}>
@@ -110,7 +155,7 @@ const ResumenTurno = () => {
           </Col>
         </Row>
       </Card>
-    </>
+    </div>
   );
 };
 

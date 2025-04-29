@@ -46,7 +46,7 @@ function Daily() {
   };
 
   return (
-    <>
+    <div style={{ minHeight: '100vh', backgroundColor: '#2c2c2c'}}>
       <Header />
       <Row gutter={16} style={{ height: '100vh', width: '100vw' }}>
         <Col span={14}>
@@ -66,7 +66,7 @@ function Daily() {
           </Card>
         </Col>
       </Row>
-    </>
+    </div>
   );
 }
 

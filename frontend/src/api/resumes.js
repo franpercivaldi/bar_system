@@ -5,7 +5,7 @@ export const getResumenDiario = async () => {
   return response.data;
 };
 
-export const getMonthSummary = async () => {
-  const response = await axios.get('/api/resumen-mensual');
+export const getMonthSummary = async (fecha = '') => {
+  const response = await axios.get(`/api/resumen-mensual?fecha=${fecha}`);
   return response.data;
 };

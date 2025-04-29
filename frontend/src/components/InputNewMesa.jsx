@@ -1,4 +1,4 @@
-import { Form, InputNumber, Select, Button, Card } from 'antd';
+import { Form, InputNumber, Select, Button, Card, Row, Col } from 'antd';
 import { addSale } from '../api/sales';
 
 const { Option } = Select;
@@ -6,13 +6,12 @@ const { Option } = Select;
 const InputNewMesa = ({ onAdd }) => {
   const [form] = Form.useForm();
 
-  // Al enviar el form, llamamos al endpoint y agregamos la mesa
   const onFinish = async (values) => {
     try {
       const { numero_mesa, monto, tipo_pago, propina } = values;
       const nuevaMesa = await addSale(numero_mesa, monto, tipo_pago, propina);
-      onAdd?.(nuevaMesa);     // Notifica al padre
-      form.resetFields();     // Limpia el formulario
+      onAdd?.(nuevaMesa);
+      form.resetFields();
     } catch (error) {
       console.error('Error al agregar nueva mesa:', error);
     }
@@ -20,38 +19,52 @@ const InputNewMesa = ({ onAdd }) => {
 
   return (
     <Card title="Agregar Nueva Mesa" style={{ marginBottom: 16 }}>
-      <Form form={form} layout="inline" onFinish={onFinish}>
-        <Form.Item
-          name="numero_mesa"
-          rules={[{ required: true, message: 'Ingresa número de mesa' }]}
-        >
-          <InputNumber placeholder="Mesa" min={1} />
-        </Form.Item>
+      <Form form={form} onFinish={onFinish} layout="vertical">
+        <Row gutter={16}>
+          <Col xs={24} sm={12} md={4}>
+            <Form.Item
+              name="numero_mesa"
+              label="Mesa"
+              rules={[{ required: true, message: 'Ingresa número de mesa' }]}
+            >
+              <InputNumber min={1} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
 
-        <Form.Item
-          name="monto"
-          rules={[{ required: true, message: 'Ingresa el monto' }]}
-        >
-          <InputNumber placeholder="Monto" min={0} />
-        </Form.Item>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item
+              name="monto"
+              label="Monto"
+              rules={[{ required: true, message: 'Ingresa el monto' }]}
+            >
+              <InputNumber min={0} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
 
-        <Form.Item name="tipo_pago" initialValue="Efectivo">
-          <Select style={{ width: 120 }}>
-            <Option value="Efectivo">Efectivo</Option>
-            <Option value="Mercado Pago">Mercado Pago</Option>
-            <Option value="Tarjeta">Tarjeta</Option>
-          </Select>
-        </Form.Item>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item name="tipo_pago" label="Tipo de Pago" initialValue="Efectivo">
+              <Select style={{ width: '100%' }}>
+                <Option value="Efectivo">Efectivo</Option>
+                <Option value="Mercado Pago">Mercado Pago</Option>
+                <Option value="Tarjeta">Tarjeta</Option>
+              </Select>
+            </Form.Item>
+          </Col>
 
-        <Form.Item name="propina" initialValue={0}>
-          <InputNumber placeholder="Propina" min={0} />
-        </Form.Item>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item name="propina" label="Propina" initialValue={0}>
+              <InputNumber min={0} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
 
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
-            Agregar Mesa
-          </Button>
-        </Form.Item>
+          <Col span={22} style={{ textAlign: 'right' }}>
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Agregar Mesa
+              </Button>
+            </Form.Item>
+          </Col>
+        </Row>
       </Form>
     </Card>
   );

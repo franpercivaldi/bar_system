@@ -174,6 +174,8 @@ const TableDaily = ({ data, loading, onDelete, onEdit }) => {
       loading={loading}
       rowKey="id"
       pagination={false}
+      // scroll automatico
+      scroll={{ y: 300 }}
     />
   );
 };
