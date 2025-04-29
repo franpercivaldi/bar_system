@@ -12,6 +12,7 @@ const getResumenDiarioService = async (bar_id) => {
   };
 
   const turnos = await Turno.findAll();
+  console.log('Esto es turnos =>', turnos);
 
   for (const turno of turnos) {
     const mesas = await Mesa.findAll({
@@ -55,91 +56,94 @@ const getResumenDiarioService = async (bar_id) => {
   return resumen;
 };
 
-const getResumenMensualService = async (bar_id) => {
-    const hoy = new Date();
-    const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+const getResumenMensualService = async (bar_id, fecha) => {
+  // Si no se pasa fecha, usamos la actual
+  const fechaReferencia = fecha ? new Date(`${fecha}-01`) : new Date();
+  console.log('Esto es fecha referencia =>', fechaReferencia);
 
-    const fechaDesde = primerDia.toISOString().split('T')[0];
-    const fechaHasta = ultimoDia.toISOString().split('T')[0];
+  const primerDia = new Date(fechaReferencia.getFullYear(), fechaReferencia.getMonth(), 1);
+  const ultimoDia = new Date(fechaReferencia.getFullYear(), fechaReferencia.getMonth() + 1, 0);
 
-    // 1. Obtener ventas (agrupadas por fecha y tipo_pago)
-    const ventas = await Mesa.findAll({
-        attributes: [
-        'fecha',
-        'tipo_pago',
-        [Sequelize.fn('SUM', Sequelize.col('monto')), 'total']
-        ],
-        where: {
-        bar_id,
-        fecha: { [Op.between]: [fechaDesde, fechaHasta] }
-        },
-        group: ['fecha', 'tipo_pago'],
-        raw: true
-    });
+  const fechaDesde = primerDia.toISOString().split('T')[0];
+  const fechaHasta = ultimoDia.toISOString().split('T')[0];
 
-    // 2. Obtener gastos en efectivo (comentarios)
-    const gastos = await Comentario.findAll({
-        attributes: [
-        'fecha',
-        [Sequelize.fn('SUM', Sequelize.col('monto')), 'total']
-        ],
-        where: {
-        bar_id,
-        fecha: { [Op.between]: [fechaDesde, fechaHasta] }
-        },
-        group: ['fecha'],
-        raw: true
-    });
+  // 1. Obtener ventas (agrupadas por fecha y tipo_pago)
+  const ventas = await Mesa.findAll({
+      attributes: [
+      'fecha',
+      'tipo_pago',
+      [Sequelize.fn('SUM', Sequelize.col('monto')), 'total']
+      ],
+      where: {
+      bar_id,
+      fecha: { [Op.between]: [fechaDesde, fechaHasta] }
+      },
+      group: ['fecha', 'tipo_pago'],
+      raw: true
+  });
 
-    // 3. Organizar los datos por día
-    const resumenPorDia = {};
+  // 2. Obtener gastos en efectivo (comentarios)
+  const gastos = await Comentario.findAll({
+      attributes: [
+      'fecha',
+      [Sequelize.fn('SUM', Sequelize.col('monto')), 'total']
+      ],
+      where: {
+      bar_id,
+      fecha: { [Op.between]: [fechaDesde, fechaHasta] }
+      },
+      group: ['fecha'],
+      raw: true
+  });
 
-    ventas.forEach((v) => {
-        const fecha = v.fecha;
-        if (!resumenPorDia[fecha]) {
-        resumenPorDia[fecha] = {
-            dia: fecha,
-            ventaTotal: 0,
-            efectivo: 0,
-            tarjeta: 0,
-            gastos: 0
-        };
-        }
+  // 3. Organizar los datos por día
+  const resumenPorDia = {};
 
-        const tipo = v.tipo_pago;
-        const monto = parseFloat(v.total);
+  ventas.forEach((v) => {
+      const fecha = v.fecha;
+      if (!resumenPorDia[fecha]) {
+      resumenPorDia[fecha] = {
+          dia: fecha,
+          ventaTotal: 0,
+          efectivo: 0,
+          tarjeta: 0,
+          gastos: 0
+      };
+      }
 
-        resumenPorDia[fecha].ventaTotal += monto;
+      const tipo = v.tipo_pago;
+      const monto = parseFloat(v.total);
 
-        if (tipo === 'Efectivo') resumenPorDia[fecha].efectivo += monto;
-        else if (tipo === 'Tarjeta') resumenPorDia[fecha].tarjeta += monto; // En el mes, juntamos ventas por tarjeta y mercado pago
-        else if (tipo === 'Mercado Pago') resumenPorDia[fecha].tarjeta += monto;       
-    });
+      resumenPorDia[fecha].ventaTotal += monto;
 
-    gastos.forEach((g) => {
-        const fecha = g.fecha;
-        if (!resumenPorDia[fecha]) {
-        resumenPorDia[fecha] = {
-            dia: fecha,
-            ventaTotal: 0,
-            efectivo: 0,
-            tarjeta: 0,
-            gastos: 0
-        };
-        }
+      if (tipo === 'Efectivo') resumenPorDia[fecha].efectivo += monto;
+      else if (tipo === 'Tarjeta') resumenPorDia[fecha].tarjeta += monto; // En el mes, juntamos ventas por tarjeta y mercado pago
+      else if (tipo === 'Mercado Pago') resumenPorDia[fecha].tarjeta += monto;       
+  });
 
-        resumenPorDia[fecha].gastos = parseFloat(g.total);
-    });
+  gastos.forEach((g) => {
+      const fecha = g.fecha;
+      if (!resumenPorDia[fecha]) {
+      resumenPorDia[fecha] = {
+          dia: fecha,
+          ventaTotal: 0,
+          efectivo: 0,
+          tarjeta: 0,
+          gastos: 0
+      };
+      }
 
-    // 4. Convertir a array y ordenar por día
-    const resumenFinal = Object.values(resumenPorDia).sort(
-        (a, b) => new Date(a.dia) - new Date(b.dia)
-    );
+      resumenPorDia[fecha].gastos = parseFloat(g.total);
+  });
+
+  // 4. Convertir a array y ordenar por día
+  const resumenFinal = Object.values(resumenPorDia).sort(
+      (a, b) => new Date(a.dia) - new Date(b.dia)
+  );
 
 
-    console.log('Esto es resumen final =>', resumenFinal);
-    return resumenFinal;
+  console.log('Esto es resumen final =>', resumenFinal);
+  return resumenFinal;
 };
   
 module.exports = {

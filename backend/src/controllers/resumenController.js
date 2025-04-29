@@ -21,7 +21,8 @@ const {
       const barId = req.headers['bar-seleccionado'];
       if (!barId) return res.status(400).json({ mensaje: 'Bar no seleccionado' });
   
-      const resumen = await getResumenMensualService(barId);
+      const fecha = req.query.fecha;
+      const resumen = await getResumenMensualService(barId, fecha);
       res.json(resumen);
     } catch (error) {
       console.error('Error al obtener resumen mensual:', error);
