@@ -3,24 +3,16 @@ const Turno = require('../models/turno');
 const Comentario = require('../models/comentario');
 const { Op, Sequelize  } = require('sequelize');
 
-const getResumenDiarioService = async (bar_id) => {
-  const fechaHoy = new Date().toISOString().split('T')[0];
+const getResumenDiarioService = async (bar_id, fecha) => {
+  const fechaConsulta = fecha || new Date().toISOString().split('T')[0];
 
-  const resumen = {
-    fecha: fechaHoy,
-    turnos: {},
-  };
+  const resumen = { fecha: fechaConsulta, turnos: {} };
 
   const turnos = await Turno.findAll();
-  console.log('Esto es turnos =>', turnos);
 
   for (const turno of turnos) {
     const mesas = await Mesa.findAll({
-      where: {
-        bar_id,
-        turno_id: turno.id,
-        fecha: fechaHoy,
-      },
+      where: { bar_id, turno_id: turno.id, fecha: fechaConsulta },
     });
 
     const total = mesas.reduce((acc, m) => acc + parseFloat(m.monto), 0);
@@ -37,7 +29,7 @@ const getResumenDiarioService = async (bar_id) => {
     const comentarios = await Comentario.findAll({
       where: {
         bar_id,
-        fecha: fechaHoy,
+        fecha: fechaConsulta,
       },
     });
 
