@@ -3,59 +3,51 @@ const Turno = require('../models/turno');
 const Comentario = require('../models/comentario');
 const { Op, Sequelize  } = require('sequelize');
 const dayjs = require('dayjs');
-
+const utc = require('dayjs/plugin/utc');
+const timezone = require('dayjs/plugin/timezone');
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const getResumenDiarioService = async (bar_id, fechaISO) => {
-  const fechaBase = dayjs(fechaISO);               // 2025-04-29
-  const turnos = await Turno.findAll();            // [{id, nombre, hora_inicio, hora_fin}, …]
+  const tz = 'America/Argentina/Buenos_Aires';
+  const fechaBase = dayjs.tz(fechaISO, tz);
 
+  const turnos = await Turno.findAll();
   const resumen = { fecha: fechaBase.format('YYYY-MM-DD'), turnos: {} };
 
   for (const t of turnos) {
-    // construimos inicio y fin del rango
-    let inicio = dayjs(`${fechaISO} ${t.hora_inicio}`);   // 2025-04-29 17:00
-    let fin    = dayjs(`${fechaISO} ${t.hora_fin}`);      // 2025-04-29 03:00
+    let inicio = dayjs.tz(`${fechaISO} ${t.hora_inicio}`, tz);
+    let fin    = dayjs.tz(`${fechaISO} ${t.hora_fin}`, tz);
 
-    // Si fin < inicio, significa que cruza medianoche → sumamos 1 día
-    if (fin.isBefore(inicio)) fin = fin.add(1, 'day');    // 2025-04-30 03:00
+    if (!fin.isAfter(inicio)) fin = fin.add(1, 'day');
 
-    // 🟢 Ventas / Mesas
+    // usar [inicio, fin) para evitar duplicados
     const mesas = await Mesa.findAll({
       where: {
         bar_id,
-        fecha: { [Op.between]: [inicio.toDate(), fin.toDate()] },
+        fecha: { [Op.gte]: inicio.utc().toDate(), [Op.lt]: fin.utc().toDate() },
       },
     });
 
-    // 🟢 Gastos / Comentarios
     const comentarios = await Comentario.findAll({
       where: {
         bar_id,
-        fecha: { [Op.between]: [inicio.toDate(), fin.toDate()] },
+        fecha: { [Op.gte]: inicio.utc().toDate(), [Op.lt]: fin.utc().toDate() },
       },
     });
 
-    // ▶️ Cálculos
     const total     = mesas.reduce((s, m) => s + +m.monto, 0);
-    const efectivo  = mesas.filter(m => m.tipo_pago === 'Efectivo')
-                           .reduce((s, m) => s + +m.monto, 0);
-    const tarjetas  = mesas.filter(m => m.tipo_pago === 'Tarjeta')
-                           .reduce((s, m) => s + +m.monto, 0);
-    const mp        = mesas.filter(m => m.tipo_pago === 'Mercado Pago')
-                           .reduce((s, m) => s + +m.monto, 0);
+    const efectivo  = mesas.filter(m => m.tipo_pago === 'Efectivo').reduce((s, m) => s + +m.monto, 0);
+    const tarjetas  = mesas.filter(m => m.tipo_pago === 'Tarjeta').reduce((s, m) => s + +m.monto, 0);
+    const mp        = mesas.filter(m => m.tipo_pago === 'Mercado Pago').reduce((s, m) => s + +m.monto, 0);
     const gastos    = comentarios.reduce((s, c) => s + +c.monto, 0);
 
-    resumen.turnos[t.nombre.toLowerCase()] = {
-      total,
-      efectivo,
-      tarjetas,
-      mp,
-      gastos,
-    };
+    resumen.turnos[t.nombre.toLowerCase()] = { total, efectivo, tarjetas, mp, gastos };
   }
 
   return resumen;
 };
+
 
 const getResumenMensualService = async (bar_id, fecha) => {
   // Si no se pasa fecha, usamos la actual

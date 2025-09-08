@@ -1,6 +1,7 @@
 import { Layout, Menu } from 'antd';
 import { Link, useLocation } from 'react-router-dom';
 
+
 const { Header } = Layout;
 
 const AppHeader = () => {
@@ -9,8 +10,9 @@ const AppHeader = () => {
   return (
     <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
       {/* Logo */}
-      <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
-        LOGO
+      <div className="logo">
+        {/* <img src="/assets/MariasLogo.png" alt="Logo" style={{ paddingTop:'20px', height: '100px' }} /> */}
+        Bar María
       </div>
 
       {/* Menú de navegación */}

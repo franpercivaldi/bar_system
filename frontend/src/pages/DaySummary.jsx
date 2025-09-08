@@ -64,7 +64,8 @@ const ResumenTurno = () => {
     );
   }
 
-  const { turnos } = resumen; // asumimos que el backend ya nos devuelve las cifras
+  const { turnos } = resumen;
+  console.log('Turnos =>', turnos);
 
   const calcVentaTarjetas = (turno) =>
     (turnos[turno]?.tarjetas || 0) + (turnos[turno]?.mp || 0);
