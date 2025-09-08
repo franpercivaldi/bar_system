@@ -1,3 +1,4 @@
+// src/pages/MonthSummary.js
 import { useEffect, useState } from 'react';
 import {
   Table,
@@ -7,16 +8,16 @@ import {
   message,
   DatePicker,
   Space,
+  Button,
 } from 'antd';
 import Header from '../components/Header';
 import { getMonthSummary } from '../api/resumes';
 import dayjs from 'dayjs';
-import 'dayjs/locale/es'; // 👈 importa español
-import locale from 'antd/es/locale/es_ES'; // 👈 idioma de Ant Design
+import 'dayjs/locale/es';
+import locale from 'antd/es/locale/es_ES';
 import { ConfigProvider } from 'antd';
 
-dayjs.locale('es'); // 👈 setea globalmente español
-
+dayjs.locale('es');
 
 const { Title } = Typography;
 
@@ -25,12 +26,13 @@ const format = (n) => `$${(n || 0).toLocaleString()}`;
 const MonthSummary = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState(dayjs());
+  const [selectedMonth, setSelectedMonth] = useState(dayjs()); // hoy por defecto
 
+  // ---- Petición a la API ----
   const fetchMensual = async (month) => {
     try {
       setLoading(true);
-      const resumen = await getMonthSummary(month.format('YYYY-MM')); // <-- ejemplo: "2025-04"
+      const resumen = await getMonthSummary(month.format('YYYY-MM')); // "2025-04"
       setData(resumen);
     } catch (err) {
       console.error('Error al cargar resumen mensual:', err);
@@ -42,6 +44,7 @@ const MonthSummary = () => {
 
   useEffect(() => {
     fetchMensual(selectedMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth]);
 
   const handleMonthChange = (date) => {
@@ -50,6 +53,9 @@ const MonthSummary = () => {
     }
   };
 
+  const volverHoy = () => setSelectedMonth(dayjs()); // Botón Hoy
+
+  // ---- Agregados/calculados ----
   const totals = data.reduce(
     (acc, row) => ({
       ventaTotal: acc.ventaTotal + row.ventaTotal,
@@ -109,17 +115,20 @@ const MonthSummary = () => {
         <div style={{ padding: 32 }}>
           <Card
             title={
-              <Space style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                 <Title level={3} style={{ margin: 0 }}>
                   Resumen Mensual
                 </Title>
-                <DatePicker
-                  picker="month"
-                  value={selectedMonth}
-                  onChange={handleMonthChange}
-                  format="MMMM YYYY"
-                  allowClear={false}
-                />
+                <Space>
+                  <DatePicker
+                    picker="month"
+                    value={selectedMonth}
+                    onChange={handleMonthChange}
+                    format="MMMM YYYY"
+                    allowClear={false}
+                  />
+                  <Button onClick={volverHoy}>Hoy</Button>
+                </Space>
               </Space>
             }
             style={{

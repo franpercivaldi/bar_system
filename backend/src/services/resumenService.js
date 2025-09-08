@@ -2,40 +2,50 @@ const Mesa = require('../models/mesa');
 const Turno = require('../models/turno');
 const Comentario = require('../models/comentario');
 const { Op, Sequelize  } = require('sequelize');
+const dayjs = require('dayjs');
 
-const getResumenDiarioService = async (bar_id, fecha) => {
-  const fechaConsulta = fecha || new Date().toISOString().split('T')[0];
 
-  const resumen = { fecha: fechaConsulta, turnos: {} };
+const getResumenDiarioService = async (bar_id, fechaISO) => {
+  const fechaBase = dayjs(fechaISO);               // 2025-04-29
+  const turnos = await Turno.findAll();            // [{id, nombre, hora_inicio, hora_fin}, …]
 
-  const turnos = await Turno.findAll();
+  const resumen = { fecha: fechaBase.format('YYYY-MM-DD'), turnos: {} };
 
-  for (const turno of turnos) {
+  for (const t of turnos) {
+    // construimos inicio y fin del rango
+    let inicio = dayjs(`${fechaISO} ${t.hora_inicio}`);   // 2025-04-29 17:00
+    let fin    = dayjs(`${fechaISO} ${t.hora_fin}`);      // 2025-04-29 03:00
+
+    // Si fin < inicio, significa que cruza medianoche → sumamos 1 día
+    if (fin.isBefore(inicio)) fin = fin.add(1, 'day');    // 2025-04-30 03:00
+
+    // 🟢 Ventas / Mesas
     const mesas = await Mesa.findAll({
-      where: { bar_id, turno_id: turno.id, fecha: fechaConsulta },
-    });
-
-    const total = mesas.reduce((acc, m) => acc + parseFloat(m.monto), 0);
-    const efectivo = mesas
-      .filter((m) => m.tipo_pago === 'Efectivo')
-      .reduce((acc, m) => acc + parseFloat(m.monto), 0);
-    const tarjetas = mesas
-      .filter((m) => m.tipo_pago === 'Tarjeta')
-      .reduce((acc, m) => acc + parseFloat(m.monto), 0);
-    const mp = mesas
-      .filter((m) => ['Mercado Pago'].includes(m.tipo_pago))
-      .reduce((acc, m) => acc + parseFloat(m.monto), 0);
-
-    const comentarios = await Comentario.findAll({
       where: {
         bar_id,
-        fecha: fechaConsulta,
+        fecha: { [Op.between]: [inicio.toDate(), fin.toDate()] },
       },
     });
 
-    const gastos = comentarios.reduce((acc, c) => acc + parseFloat(c.monto), 0);
+    // 🟢 Gastos / Comentarios
+    const comentarios = await Comentario.findAll({
+      where: {
+        bar_id,
+        fecha: { [Op.between]: [inicio.toDate(), fin.toDate()] },
+      },
+    });
 
-    resumen.turnos[turno.nombre.toLowerCase()] = {
+    // ▶️ Cálculos
+    const total     = mesas.reduce((s, m) => s + +m.monto, 0);
+    const efectivo  = mesas.filter(m => m.tipo_pago === 'Efectivo')
+                           .reduce((s, m) => s + +m.monto, 0);
+    const tarjetas  = mesas.filter(m => m.tipo_pago === 'Tarjeta')
+                           .reduce((s, m) => s + +m.monto, 0);
+    const mp        = mesas.filter(m => m.tipo_pago === 'Mercado Pago')
+                           .reduce((s, m) => s + +m.monto, 0);
+    const gastos    = comentarios.reduce((s, c) => s + +c.monto, 0);
+
+    resumen.turnos[t.nombre.toLowerCase()] = {
       total,
       efectivo,
       tarjetas,
@@ -44,7 +54,6 @@ const getResumenDiarioService = async (bar_id, fecha) => {
     };
   }
 
-  console.log('Esto es resumen =>', resumen);
   return resumen;
 };
 
