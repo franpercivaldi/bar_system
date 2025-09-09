@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: MariasRestoBar
+      POSTGRES_USER: franperci
+      POSTGRES_PASSWORD: mansanita15
+    volumes:
+      - db_dev_data:/var/lib/postgresql/data
+    networks: [appnet]
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./backend/.env
+    environment:
+      - DB_HOST=db
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    networks: [appnet]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks: [appnet]
+
+volumes:
+  db_dev_data:
+
+networks:
+  appnet:
+    driver: bridge
