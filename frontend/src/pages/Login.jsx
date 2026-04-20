@@ -1,9 +1,9 @@
 import { Alert, Row, Col, Card, Form, Input, Button, Typography } from 'antd';
 import { Formik } from 'formik';
 import { useNavigate } from "react-router-dom";
-import {loginBar} from '../api/auth';
+import { loginBar, registerBar } from '../api/auth';
 import * as Yup from 'yup';
-import {useState} from 'react';
+import { useState } from 'react';
 
 
 const { Title } = Typography;
@@ -14,15 +14,14 @@ function Login() {
   // Hook para redireccionar a otras páginas
   const navigate = useNavigate();
 
-  // Estado local para mostrar mensajes de error
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState("login");
 
-  // Esquema de validación con Yup
   const validationSchema = Yup.object().shape({
     nombre: Yup.string()
       .required("Este campo es obligatorio"),
     password: Yup.string()
-      .min(3, "La contraseña debe tener al menos 8 caracteres")
+      .min(6, "La contraseña debe tener al menos 6 caracteres")
       .required("Este campo es obligatorio"),
   });
 
@@ -67,31 +66,89 @@ function Login() {
             boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)" 
           }}
         >
-          <Title level={2} style={{ textAlign: "center", color: "#e0e0e0" }}>
-            Iniciar Sesión
+          <div style={{ marginBottom: 16 }}>
+            <Button.Group style={{ width: "100%", display: "flex" }}>
+              <Button
+                type={mode === "login" ? "primary" : "default"}
+                onClick={() => {
+                  setMode("login");
+                  setError(null);
+                }}
+                style={{
+                  flex: 1,
+                  height: 40,
+                  fontWeight: "bold",
+                  ...(mode === "login"
+                    ? { backgroundColor: "#10a37f", borderColor: "#10a37f", color: "#fff" }
+                    : {
+                        backgroundColor: "#3a3a3a",
+                        borderColor: "#3a3a3a",
+                        color: "#e0e0e0",
+                      }),
+                }}
+              >
+                Ingresar
+              </Button>
+              <Button
+                type={mode === "register" ? "primary" : "default"}
+                onClick={() => {
+                  setMode("register");
+                  setError(null);
+                }}
+                style={{
+                  flex: 1,
+                  height: 40,
+                  fontWeight: "bold",
+                  ...(mode === "register"
+                    ? { backgroundColor: "#10a37f", borderColor: "#10a37f", color: "#fff" }
+                    : {
+                        backgroundColor: "#3a3a3a",
+                        borderColor: "#3a3a3a",
+                        color: "#e0e0e0",
+                      }),
+                }}
+              >
+                Registrarse
+              </Button>
+            </Button.Group>
+          </div>
+
+          <Title level={2} style={{ textAlign: "center", color: "#e0e0e0", marginTop: 0 }}>
+            {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
           </Title>
 
-          {/* Mostrar mensaje de error */}
           {error && <Alert message={error} type="error" showIcon style={{ marginBottom: "10px" }} />}
 
-          {/* Formulario de inicio de sesión */}
-                    
           <Formik
+            key={mode}
             initialValues={{ nombre: "", password: "" }}
             validationSchema={validationSchema}
             onSubmit={(values) => {
-              setError(null); 
-              loginBar(values.nombre, values.password)
-                .then((response) => {
-                  localStorage.setItem("token", response.token);
-                  localStorage.setItem("barSeleccionado", response.bar.id);
-                  navigate("/daily-records");
-                })
-                .catch((error) => {
-                  console.error("Error en la petición:", error);
-                  const msg = error.response?.data?.msg || "Ocurrió un error inesperado";
-                  setError(msg);
-                });
+              setError(null);
+              const goDaily = (response) => {
+                localStorage.setItem("token", response.token);
+                localStorage.setItem("barSeleccionado", response.bar.id);
+                navigate("/daily-records");
+              };
+              if (mode === "login") {
+                loginBar(values.nombre, values.password)
+                  .then(goDaily)
+                  .catch((err) => {
+                    console.error("Error en la petición:", err);
+                    const msg = err.response?.data?.msg || err.response?.data?.error || "Ocurrió un error inesperado";
+                    setError(msg);
+                  });
+              } else {
+                registerBar(values.nombre, values.password)
+                  .then(() => loginBar(values.nombre, values.password))
+                  .then(goDaily)
+                  .catch((err) => {
+                    console.error("Error en la petición:", err);
+                    const msg =
+                      err.response?.data?.msg || err.response?.data?.error || "Ocurrió un error inesperado";
+                    setError(msg);
+                  });
+              }
             }}
           >
             {({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => (
@@ -149,7 +206,7 @@ function Login() {
                       fontWeight: "bold",
                     }}
                   >
-                    Ingresar
+                    {mode === "login" ? "Ingresar" : "Crear cuenta"}
                   </Button>
                 </Form.Item>
               </form>

@@ -7,6 +7,14 @@ services:
       POSTGRES_PASSWORD: mansanita15
     volumes:
       - db_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U franperci -d MariasRestoBar"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+    ports:
+      - "5432:5432"
     networks: [appnet]
 
   backend:
@@ -23,7 +31,8 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks: [appnet]
 
   frontend:

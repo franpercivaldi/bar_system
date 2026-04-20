@@ -7,3 +7,11 @@ export const loginBar = async (nombre, password) => {
   });
   return response.data;
 };
+
+export const registerBar = async (nombre, password) => {
+  const response = await axios.post("/api/register", {
+    nombre: nombre,
+    password: password
+  });
+  return response.data;
+};
