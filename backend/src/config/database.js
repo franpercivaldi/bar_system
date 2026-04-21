@@ -17,12 +17,33 @@ if (!isRailwayRuntime()) {
 }
 
 function buildSequelize() {
-  const databaseUrl = process.env.DATABASE_URL?.trim();
+  const rawUrl = process.env.DATABASE_URL;
+  const databaseUrl = rawUrl?.trim();
 
   const onRailway = isRailwayRuntime();
   if (onRailway && !databaseUrl) {
     console.error(
-      '❌ En Railway el backend necesita DATABASE_URL en Variables del servicio API (referencia o valor copiado del servicio PostgreSQL). No uses DB_HOST=localhost.'
+      [
+        '❌ DATABASE_URL no llega al contenedor del API en Railway.',
+        '',
+        'Revisá:',
+        '1) La variable está en el servicio del BACKEND (API), no solo en Postgres.',
+        '2) Tras guardar Variables, hacé un Redeploy (a veces no aplica hasta redeploy).',
+        '3) Si usás referencia ${{ NombreServicio.DATABASE_URL }}: el nombre debe ser EXACTAMENTE el del servicio Postgres en el lienzo (si se llama "PostgreSQL" o "Postgres-xxx", usá ese nombre).',
+        '4) Solución segura: abrí el servicio Postgres → Variables → copiá el valor de DATABASE_URL y pegalo en texto plano en el API (sin ${{ }}).',
+        '',
+        `Diagnóstico: DATABASE_URL definida=${Boolean(rawUrl)}, longitud=${rawUrl?.length ?? 0}`,
+      ].join('\n')
+    );
+    process.exit(1);
+  }
+
+  if (
+    databaseUrl &&
+    (databaseUrl.startsWith('${{') || databaseUrl.includes('${{'))
+  ) {
+    console.error(
+      '❌ DATABASE_URL parece una referencia sin resolver (sigue literal ${{ ... }}). Renombrá la referencia al nombre exacto del servicio Postgres en Railway o pegá la URL en crudo desde Variables del Postgres.'
     );
     process.exit(1);
   }

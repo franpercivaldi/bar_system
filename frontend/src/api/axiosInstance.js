@@ -1,6 +1,15 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+function normalizeApiBaseUrl(raw) {
+  const fallback = "http://localhost:3000";
+  if (!raw || typeof raw !== "string") return fallback;
+  const trimmed = raw.trim().replace(/\/+$/, "");
+  if (!trimmed) return fallback;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+const baseURL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 
 const instance = axios.create({
   baseURL,
