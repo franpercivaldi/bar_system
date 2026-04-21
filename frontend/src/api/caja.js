@@ -6,6 +6,11 @@ export const saveCajaInicial = async (monto) => {
 };
 
 export const getCajaInicial = async () => {
-  const response = await axios.get('/api/caja');
-  return response.data;
+  try {
+    const response = await axios.get('/api/caja');
+    return response.data;
+  } catch (e) {
+    if (e.response?.status === 404) return null;
+    throw e;
+  }
 };
