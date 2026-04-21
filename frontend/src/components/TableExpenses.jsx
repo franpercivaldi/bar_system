@@ -12,7 +12,7 @@ import {
 import { addComment, getComments } from '../api/comments';
 import { getCajaInicial, saveCajaInicial } from '../api/caja';
 
-const TableExpenses = () => {
+const TableExpenses = ({ onCajaEstadoChange }) => {
   const [loadingCaja, setLoadingCaja] = useState(true);
   const [cajaInicial, setCajaInicial] = useState(null);
   const [inputCaja, setInputCaja] = useState(0);
@@ -48,15 +48,18 @@ const TableExpenses = () => {
         const caja = await getCajaInicial();
         if (caja) {
           setCajaInicial(parseFloat(caja.monto));
+          onCajaEstadoChange?.(true);
+        } else {
+          onCajaEstadoChange?.(false);
         }
       } catch (error) {
-        console.log('No hay caja registrada aún');
+        onCajaEstadoChange?.(false);
       } finally {
         setLoadingCaja(false);
       }
     };
     fetchCaja();
-  }, []);
+  }, [onCajaEstadoChange]);
 
   const handleChange = (value, field) => {
     setNewExpense((prev) => ({ ...prev, [field]: value }));
@@ -70,6 +73,7 @@ const TableExpenses = () => {
       }
       const caja = await saveCajaInicial(inputCaja);
       setCajaInicial(parseFloat(caja.monto));
+      onCajaEstadoChange?.(true);
       message.success('Caja inicial guardada');
     } catch (error) {
       console.error('Error al guardar caja:', error);
@@ -78,7 +82,7 @@ const TableExpenses = () => {
   };
 
   const handleAddExpense = async () => {
-    if (!cajaInicial) {
+    if (typeof cajaInicial !== 'number') {
       message.warning('Debés ingresar la caja inicial primero');
       return;
     }
@@ -123,10 +127,12 @@ const TableExpenses = () => {
     },
   ];
 
+  const tieneCajaRegistrada = typeof cajaInicial === 'number';
+
   return (
     <Card
       title={
-        cajaInicial !== null
+        tieneCajaRegistrada
           ? `Caja Inicial: $${cajaInicial.toFixed(2)}`
           : 'Ingresá la Caja Inicial'
       }
@@ -134,17 +140,28 @@ const TableExpenses = () => {
     >
       {loadingCaja ? (
         <Spin />
-      ) : cajaInicial === null ? (
-        <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-          <InputNumber
-            placeholder="Caja Inicial"
-            min={0}
-            value={inputCaja}
-            onChange={setInputCaja}
-          />
-          <Button type="primary" onClick={handleConfirmarCaja}>
-            Confirmar
-          </Button>
+      ) : !tieneCajaRegistrada ? (
+        <div style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              marginBottom: 10,
+              color: '#faad14',
+              fontSize: 13,
+            }}
+          >
+            Paso obligatorio al empezar el día: cargá el efectivo (o monto) de caja al abrir.
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <InputNumber
+              placeholder="Caja Inicial"
+              min={0}
+              value={inputCaja}
+              onChange={setInputCaja}
+            />
+            <Button type="primary" onClick={handleConfirmarCaja}>
+              Confirmar
+            </Button>
+          </div>
         </div>
       ) : (
         <>

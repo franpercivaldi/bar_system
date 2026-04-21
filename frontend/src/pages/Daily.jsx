@@ -1,6 +1,6 @@
 // src/pages/Daily.js
 import { useEffect, useState } from 'react';
-import { Row, Col, Card } from 'antd';
+import { Row, Col, Card, Alert } from 'antd';
 import Header from '../components/Header';
 import InputNewMesa from '../components/InputNewMesa';
 import TableDaily from '../components/TableDaily';
@@ -11,6 +11,8 @@ import { getSales } from '../api/sales';
 function Daily() {
   const [mesas, setMesas] = useState([]);
   const [loading, setLoading] = useState(true);
+  /** undefined = cargando; false = sin caja del día; true = caja ya registrada */
+  const [cajaDelDiaLista, setCajaDelDiaLista] = useState(undefined);
 
   useEffect(() => {
     const fetchMesas = async () => {
@@ -48,7 +50,19 @@ function Daily() {
         {/* Registro diario en la izquierda */}
         <Col span={14}>
           <Card title="Registro Diario" style={{ height: '100%' }}>
-            <InputNewMesa onAdd={handleAddMesa} />
+            {cajaDelDiaLista === false && (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 16 }}
+                message="Primero registrá la caja inicial del día"
+                description="En el panel Gastos (columna derecha), ingresá el monto de la caja al abrir y tocá Confirmar. Después vas a poder cargar mesas y el resto del día."
+              />
+            )}
+            <InputNewMesa
+              onAdd={handleAddMesa}
+              cajaDelDiaLista={cajaDelDiaLista}
+            />
             <TableDaily
               data={mesas}
               loading={loading}
@@ -68,7 +82,7 @@ function Daily() {
           }}
         >
           <Card title="Gastos" style={{ marginBottom: 16 }}>
-            <TableExpenses />
+            <TableExpenses onCajaEstadoChange={setCajaDelDiaLista} />
           </Card>
 
           <Card title="Vales">
