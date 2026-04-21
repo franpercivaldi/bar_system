@@ -164,4 +164,10 @@ El login devuelve un **JWT** guardado en `localStorage` como `token`. Los reques
 
 ---
 
-Si algo no conecta, revisa en este orden: que Postgres esté arriba y que `DB_*` coincidan con el servidor; que el backend imprima “Conectado a PostgreSQL” y “Servidor corriendo”; que el navegador apunte al mismo origen/puerto que CORS y que la `baseURL` de Axios sea la del API que realmente está escuchando.
+## Producción (Railway)
+
+Guía paso a paso para el cliente o para quien despliegue: [DEPLOY_RAILWAY.md](./DEPLOY_RAILWAY.md). En producción el frontend usa la variable **`VITE_API_URL`** (URL pública del API); el backend usa **`CORS_ORIGIN`**, **`DATABASE_URL`** (o `DB_*` en local) y **`JWT_SECRET`**.
+
+---
+
+Si algo no conecta en local, revisa en este orden: que Postgres esté arriba y que `DB_*` coincidan con el servidor; que el backend imprima “Conectado a PostgreSQL” y “Servidor corriendo”; que CORS y la URL del API (local o `VITE_API_URL`) coincidan con el origen del navegador.

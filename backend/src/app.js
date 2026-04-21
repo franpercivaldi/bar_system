@@ -13,14 +13,23 @@ const valeRoutes = require('./routes/valeRoutes')
 
 const app = express();
 
-// variables de entorno 
-require("dotenv").config();
+require('dotenv').config();
 
-// Habilita CORS para el frontend
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true               // para cookies o auth headers
-}));
+const defaultOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
+  : defaultOrigins;
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (corsOrigins.includes(origin)) return callback(null, true);
+      callback(null, false);
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -33,7 +42,11 @@ app.use('/api', resumenRoutes)
 app.use('/api', empleadoRoutes)
 app.use('/api', valeRoutes)
 
+const PORT = Number(process.env.PORT) || 3000;
+
 sequelize.sync({ alter: true }).then(() => {
   console.log('📌 Base de datos sincronizada');
-  app.listen(3000, () => console.log('🚀 Servidor corriendo en http://localhost:3000'));
+  app.listen(PORT, '0.0.0.0', () =>
+    console.log(`🚀 Servidor corriendo en el puerto ${PORT}`)
+  );
 });

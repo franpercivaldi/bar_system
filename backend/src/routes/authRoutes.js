@@ -45,7 +45,9 @@ router.post("/login", async (req, res) => {
 
 // **Middleware para verificar JWT**
 const auth = (req, res, next) => {
-  const token = req.header("Authorization");
+  const raw = req.header("Authorization");
+  const token =
+    raw && raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw;
   if (!token) return res.status(401).json({ msg: "Acceso denegado" });
 
   try {
