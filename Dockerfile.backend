@@ -1,0 +1,11 @@
+# Build con contexto en la RAÍZ del repo (recomendado en Railway para este monorepo).
+# En el servicio del API, Variables: RAILWAY_DOCKERFILE_PATH = Dockerfile.backend
+# y dejá Root Directory vacío.
+FROM node:20-alpine
+WORKDIR /app
+COPY backend/package*.json ./
+RUN npm ci --omit=dev
+COPY backend/ ./
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["node", "src/app.js"]

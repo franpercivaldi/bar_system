@@ -13,15 +13,28 @@ Este tutorial sirve para publicar **Bar System** en [Railway](https://railway.ap
 
 ## Monorepo: error “Railpack could not determine how to build” / “start.sh not found”
 
-Este repo **no tiene** `package.json` en la raíz: solo dentro de **`backend/`** y **`frontend/`**. Si conectás GitHub y dejás Railway en la raíz del repositorio, **Railpack no sabe qué construir** y aparece ese error.
+Este repo **no tiene** `package.json` en la raíz. A veces, aunque pongas **Root Directory = `backend`**, el build sigue analizando la raíz (en el log aparecen `backend/` y `frontend/` como carpetas). En ese caso **no uses Railpack**: forzá **Docker** con el archivo de la raíz del repo.
 
-**Qué hacer (obligatorio en cada servicio):**
+### Opción A (recomendada si Root Directory falla): Dockerfile en la raíz del repo
 
-1. Abrí el servicio → **Settings**.
-2. **Root Directory** → escribí exactamente **`backend`** (API) o **`frontend`** (sitio). Guardá.
-3. Volvé a desplegar (**Redeploy**).
+1. Servicio del **backend** → **Variables** (del servicio):
+   - **`RAILWAY_DOCKERFILE_PATH`** = **`Dockerfile.backend`** (exactamente ese nombre; apunta al archivo en la raíz del repositorio).
+2. **Source** → **Root Directory**: **vacío** / **borrá** el valor (Railway debe clonar el repo completo).
+3. **Build** → si hay selector de **Builder**, elegí **Dockerfile** (si aparece).
+4. Guardá y **Redeploy**.
 
-En **`backend/`** hay un **`Dockerfile`** de producción y un **`railway.json`** que piden construir con Dockerfile: suele evitar fallos de detección automática. Si el panel ofrece elegir **Builder**, podés dejar **Dockerfile**.
+El archivo **`Dockerfile.backend`** en la raíz del proyecto copia solo lo que hay en **`backend/`** hacia la imagen. No hace falta `start.sh` ni detección de Node en la raíz.
+
+### Opción B: Root Directory en `backend`
+
+Si en tu cuenta Railpack **sí** respeta el subdirectorio:
+
+1. **Root Directory** = **`backend`**.
+2. Debería detectarse el **`backend/Dockerfile`**.
+
+Si el log del build sigue listando `./backend/` y `./frontend/` bajo `./`, usá la **Opción A**.
+
+Para el **frontend**, más adelante: **Root Directory** = **`frontend`** o una estrategia similar (build estático / Dockerfile en raíz si hiciera falta).
 
 ---
 
@@ -37,10 +50,10 @@ En **`backend/`** hay un **`Dockerfile`** de producción y un **`railway.json`**
 ## 2. Servicio: Backend (API)
 
 1. **Add** → **GitHub Repo** → mismo repo (o **Empty Service** y conectá el repo).
-2. Abrí el servicio → **Settings** (primero esto, antes de confiar en el build):
-   - **Root Directory:** **`backend`** (crítico: si queda vacío o en `/`, el deploy falla en monorepos).
-   - Con el **`Dockerfile`** y **`railway.json`** de esta carpeta, Railway construye la imagen sin depender de Railpack en la raíz. No hace falta un **Build Command** manual salvo que el panel lo exija; el **Start** lo define el `CMD` del Dockerfile (`node src/app.js`).
-3. Pestaña **Variables** (o **Variables** del servicio):
+2. **Variables** → agregá **`RAILWAY_DOCKERFILE_PATH`** = **`Dockerfile.backend`** (recomendado con este repo; ver sección “Monorepo” arriba). **Source** → **Root Directory** vacío si usás esta variable.
+3. Si preferís no usar esa variable: **Root Directory** = **`backend`** y que tome **`backend/Dockerfile`** (solo si el build **no** vuelve a fallar con Railpack).
+4. El arranque lo define el **Dockerfile** (`node src/app.js`); Railway inyecta **`PORT`**.
+5. Pestaña **Variables** (o **Variables** del servicio):
    - Clic en **Add Reference** → elegí la variable **`DATABASE_URL`** del plugin **Postgres** (Railway la inyecta sola). Si no aparece como referencia, agregá manualmente la variable `DATABASE_URL` copiándola desde el servicio Postgres → **Variables** → `DATABASE_URL`.
    - **`JWT_SECRET`:** una cadena larga y aleatoria (por ejemplo 32+ caracteres). No la compartas públicamente.
    - **`CORS_ORIGIN`:** por ahora podés poner `http://localhost:5173` y **después del paso 4** volver acá y añadir la URL **exacta** del frontend en Railway, separada por coma si hay varias.  
@@ -49,9 +62,9 @@ En **`backend/`** hay un **`Dockerfile`** de producción y un **`railway.json`**
      `http://localhost:5173,https://tu-frontend.up.railway.app`
    - Si la conexión a Postgres falla con error de SSL, agregá **`DATABASE_SSL`** = `true` y volvé a desplegar.
 
-4. **Settings** → **Networking** → **Generate Domain** (o equivalente) para obtener una URL pública HTTPS del API, por ejemplo `https://bar-system-api-production.up.railway.app`. **Anotá esta URL** (la usarás en el frontend).
+6. **Settings** → **Networking** → **Generate Domain** (o equivalente) para obtener una URL pública HTTPS del API, por ejemplo `https://bar-system-api-production.up.railway.app`. **Anotá esta URL** (la usarás en el frontend).
 
-5. Esperá el deploy verde y revisá los **logs**: deberían verse mensajes como conexión a PostgreSQL y “Servidor corriendo en el puerto …”. Railway define **`PORT`** automáticamente; el código ya lo usa.
+7. Esperá el deploy verde y revisá los **logs**: deberían verse mensajes como conexión a PostgreSQL y “Servidor corriendo en el puerto …”. Railway define **`PORT`** automáticamente; el código ya lo usa.
 
 ---
 
