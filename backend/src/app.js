@@ -13,7 +13,13 @@ const valeRoutes = require('./routes/valeRoutes')
 
 const app = express();
 
-require('dotenv').config();
+if (
+  !process.env.RAILWAY_PROJECT_ID &&
+  !process.env.RAILWAY_ENVIRONMENT_NAME &&
+  !process.env.RAILWAY_SERVICE_ID
+) {
+  require('dotenv').config();
+}
 
 const defaultOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
 const corsOrigins = process.env.CORS_ORIGIN

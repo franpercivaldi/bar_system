@@ -54,7 +54,8 @@ Para el **frontend**, más adelante: **Root Directory** = **`frontend`** o una e
 3. Si preferís no usar esa variable: **Root Directory** = **`backend`** y que tome **`backend/Dockerfile`** (solo si el build **no** vuelve a fallar con Railpack).
 4. El arranque lo define el **Dockerfile** (`node src/app.js`); Railway inyecta **`PORT`**.
 5. Pestaña **Variables** (o **Variables** del servicio):
-   - Clic en **Add Reference** → elegí la variable **`DATABASE_URL`** del plugin **Postgres** (Railway la inyecta sola). Si no aparece como referencia, agregá manualmente la variable `DATABASE_URL` copiándola desde el servicio Postgres → **Variables** → `DATABASE_URL`.
+   - **`DATABASE_URL` (obligatoria):** tiene que existir en **este** servicio (API), apuntando al Postgres de Railway. Lo habitual es **Variable reference** / **Add reference** → servicio **Postgres** → **`DATABASE_URL`**. Sin esto, Node intenta `127.0.0.1:5432` y falla.
+   - **Importante:** si Railway te sugirió/importó variables desde un **`.env` de desarrollo** (con `DB_HOST=localhost`), **borrá** `DB_HOST`, `DB_USER`, etc. del servicio o dejá solo `DATABASE_URL`: el código usa la URL completa en Railway, no localhost.
    - **`JWT_SECRET`:** una cadena larga y aleatoria (por ejemplo 32+ caracteres). No la compartas públicamente.
    - **`CORS_ORIGIN`:** por ahora podés poner `http://localhost:5173` y **después del paso 4** volver acá y añadir la URL **exacta** del frontend en Railway, separada por coma si hay varias.  
      Ejemplo: `https://tu-frontend.up.railway.app`  
@@ -91,6 +92,7 @@ Para el **frontend**, más adelante: **Root Directory** = **`frontend`** o una e
 
 | Síntoma | Qué revisar |
 |--------|----------------|
+| `ECONNREFUSED` a **`127.0.0.1:5432`** o **`::1:5432`** | El servicio del API **no tiene `DATABASE_URL`** (o tenés `DB_HOST=localhost` por un `.env` importado). Agregá referencia a **`DATABASE_URL`** del Postgres y quitá variables `DB_*` locales. |
 | El front no llega al API (CORS o red) | `VITE_API_URL` correcta y rebuild del front; `CORS_ORIGIN` en el backend incluye la URL exacta del front (https, sin `/` final). |
 | Backend no conecta a la DB | `DATABASE_URL` referenciada al Postgres del mismo proyecto; probar `DATABASE_SSL=true`. |
 | Página en blanco en el front | Logs de build del servicio estático; que exista la carpeta `dist` tras `npm run build`. |

@@ -2,9 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Bar = require("../models/bar");
-const dotenv = require("dotenv");
 
-dotenv.config();
 const router = express.Router();
 
 // **Registro de un bar**

@@ -1,8 +1,38 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config();
+
+// En Railway las variables vienen del panel; cargar un .env del repo puede poner
+// DB_HOST=localhost y romper la conexión aunque DATABASE_URL esté bien definida.
+function isRailwayRuntime() {
+  return Boolean(
+    process.env.RAILWAY_PROJECT_ID ||
+      process.env.RAILWAY_ENVIRONMENT_NAME ||
+      process.env.RAILWAY_SERVICE_ID ||
+      process.env.RAILWAY_DEPLOYMENT_ID ||
+      process.env.RAILWAY_REPLICA_REGION
+  );
+}
+
+if (!isRailwayRuntime()) {
+  require('dotenv').config();
+}
 
 function buildSequelize() {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+
+  const onRailway = isRailwayRuntime();
+  if (onRailway && !databaseUrl) {
+    console.error(
+      '❌ En Railway el backend necesita DATABASE_URL en Variables del servicio API (referencia o valor copiado del servicio PostgreSQL). No uses DB_HOST=localhost.'
+    );
+    process.exit(1);
+  }
+
+  if (!databaseUrl && !process.env.DB_HOST) {
+    console.error(
+      '❌ Falta conexión a PostgreSQL: definí DATABASE_URL o DB_HOST + DB_USER + DB_PASSWORD + DB_NAME (ver backend/.env.example).'
+    );
+    process.exit(1);
+  }
 
   if (databaseUrl) {
     const useSsl =
